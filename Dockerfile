@@ -33,6 +33,9 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+    RUN mkdir -p /var/lib/elasticsearch /var/log/elasticsearch \
+    && chown -R elasticsearch:elasticsearch /var/lib/elasticsearch /var/log/elasticsearch /etc/elasticsearch
+    
 RUN update-rc.d elasticsearch defaults 95 10
 
 WORKDIR /home/scanner
