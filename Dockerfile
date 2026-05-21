@@ -24,8 +24,10 @@ RUN apt-get update \
         poppler-utils \
         rclone \
         jq \
-    && wget -qO /usr/share/keyrings/elasticsearch-keyring.gpg https://artifacts.elastic.co/GPG-KEY-elasticsearch \
-    && echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main" > /etc/apt/sources.list.d/elastic-7.x.list \
+    && wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch \
+        | gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/7.x/apt stable main" \
+        > /etc/apt/sources.list.d/elastic-7.x.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends elasticsearch \
     && apt-get clean \
@@ -37,13 +39,16 @@ WORKDIR /home/scanner
 
 COPY --chown=scanner:scanner . .
 
+# change imagemagick config
 ARG imagemagic_config=/etc/ImageMagick-6/policy.xml
+
 RUN if [ -f "$imagemagic_config" ]; then \
       sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/g' "$imagemagic_config"; \
     else \
       echo "did not see file $imagemagic_config"; \
     fi
 
+# volumes
 VOLUME /home/scanner/archive
 VOLUME /home/scanner/scanner
 VOLUME /home/scanner/import
@@ -53,9 +58,13 @@ EXPOSE 9200
 RUN printf "http.host: 0.0.0.0\nnetwork.host: 0.0.0.0\ndiscovery.type: single-node\n" >> /etc/elasticsearch/elasticsearch.yml
 
 RUN crontab -l 2>/dev/null | { cat; echo "* * * * * timeout 1h flock -n /home/scanner/apps/lock/translateNewFiles.lock su scanner -c /home/scanner/apps/scripts/translateNewFiles.sh"; } | crontab -
+
 RUN crontab -l 2>/dev/null | { cat; echo "* * * * * timeout 1h flock -n /home/scanner/apps/lock/translateUploadedFiles.lock su scanner -c /home/scanner/apps/scripts/translateUploadedFiles.sh"; } | crontab -
+
 RUN crontab -l 2>/dev/null | { cat; echo "0 0 * * 0 timeout 1h flock -n /home/scanner/apps/lock/backupElasticSearchIndex.lock su scanner -c /home/scanner/apps/scripts/backupElasticSearchIndex.sh"; } | crontab -
+
 RUN crontab -l 2>/dev/null | { cat; echo "0 0 * * 0 timeout 1h flock -n /home/scanner/apps/lock/houseKeeping.lock su scanner -c /home/scanner/apps/scripts/houseKeeping.sh"; } | crontab -
+
 RUN crontab -l 2>/dev/null | { cat; echo "*/5 * * * * timeout 1h flock -n /home/scanner/apps/lock/batch5Minutes.lock su scanner -c /home/scanner/apps/scripts/batch5Minutes.sh"; } | crontab -
 
 CMD /home/scanner/apps/scripts/startupServices.sh && cron -f
