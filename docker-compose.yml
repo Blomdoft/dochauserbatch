@@ -7,7 +7,7 @@ services:
       - /home/scanner/dochauser_mount/scanner:/home/scanner/scanner
       - /home/scanner/dochauser_mount/import:/home/scanner/import
       - /home/scanner/dochauser_mount/elasticdata:/var/lib/elasticsearch
-
+      - /home/scanner/dochauser_mount/config:/home/scanner/config
     ports:
       - "9200:9200"
 

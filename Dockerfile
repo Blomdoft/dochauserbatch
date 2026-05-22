@@ -35,7 +35,7 @@ RUN apt-get update \
 
     RUN mkdir -p /var/lib/elasticsearch /var/log/elasticsearch \
     && chown -R elasticsearch:elasticsearch /var/lib/elasticsearch /var/log/elasticsearch /etc/elasticsearch
-    
+
 RUN update-rc.d elasticsearch defaults 95 10
 
 WORKDIR /home/scanner
@@ -55,6 +55,7 @@ RUN if [ -f "$imagemagic_config" ]; then \
 VOLUME /home/scanner/archive
 VOLUME /home/scanner/scanner
 VOLUME /home/scanner/import
+VOLUME /home/scanner/apps/config
 
 EXPOSE 9200
 

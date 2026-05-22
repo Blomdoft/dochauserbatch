@@ -23,5 +23,10 @@ SIGNAL_GROUP=dZRhXx+fbwTl9QBkPGWeBkHh4UFtOio5suJZQyQ1O0Y=
 #ES_HOST="192.168.2.8"
 ES_HOST="localhost"
 
+# OpenAI API (Ollama: API_ENDPOINT="http://localhost:11434/v1/chat/completions")
+API_ENDPOINT="https://api.openai.com/v1/chat/completions"
+API_MODEL="gpt-4-1106-preview"
+API_TEMPERATURE=0
+
 ## ensure log directory
 mkdir -p "$(dirname "$LOG_FILE")"
