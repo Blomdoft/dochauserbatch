@@ -42,7 +42,7 @@ WORKDIR /home/scanner
 
 COPY --chown=scanner:scanner . .
 
-# change imagemagick config
+# change imagemagic config
 ARG imagemagic_config=/etc/ImageMagick-6/policy.xml
 
 RUN if [ -f "$imagemagic_config" ]; then \
