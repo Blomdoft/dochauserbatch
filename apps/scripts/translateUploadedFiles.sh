@@ -2,6 +2,8 @@
 
 CURRENT_DIR=$(dirname "$(readlink -f "$0")")
 source $CURRENT_DIR/../config/config.sh
+# shellcheck source=lib/pdf_archive_date.sh
+source "$CURRENT_DIR/lib/pdf_archive_date.sh"
 
 {
     cur_files=$(ls  ${IMPORT_DIR}*.pdf)
@@ -12,28 +14,21 @@ source $CURRENT_DIR/../config/config.sh
       if [ -f "$entry.1" ]; then
         :
       else
-          echo "${date} Needs to be processed: $entry"
+          echo "$(date '+%Y-%m-%d %H:%M:%S') Needs to be processed: $entry"
 
           ### Prepare output folder, which is year/month/day ###
 
-	        PDFCREATIONDATE=$(pdfinfo "$entry" -isodates | grep "CreationDate" | awk '{print substr($0, 17, 19);}')
-	        #PDFCREATIONDATE=$(pdfinfo "$entry" -isodates | grep "CreationDate" | awk '{print substr($0, 18, 19);}')
+          if ! set_archive_date_from_pdf "$entry"; then
+            continue
+          fi
 
-          YEAR=${PDFCREATIONDATE:0:4}
-          MONTH=${PDFCREATIONDATE:5:2}
-          DAY=${PDFCREATIONDATE:8:2}
-          HOUR=${PDFCREATIONDATE:11:2}
-	        MINUTE=${PDFCREATIONDATE:14:2}
-  	      SECOND=${PDFCREATIONDATE:17:2}
+          OUTPUT_DIR="$ARCHIVE_DIR$YEAR/$MONTH/$DAY/"
 
-          OUTPUT_DIR="$ARCHIVE_DIR$YEAR/$MONTH/$DAY/";
-
-          echo "$OUTPUT_DIR determined"
-          echo "$HOUR $MINUTE $SECOND is the detail"
+          echo "$OUTPUT_DIR determined ($YEAR-$MONTH-$DAY $HOUR:$MINUTE:$SECOND)"
 
           if [ ! -d "$OUTPUT_DIR" ]; then
             mkdir -p "$OUTPUT_DIR"
-            echo "${date} Created new output directory $OUTPUT_DIR"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Created new output directory $OUTPUT_DIR"
           fi
 
           ### Process the file ###

@@ -2,6 +2,8 @@
 
 CURRENT_DIR=$(dirname "$(readlink -f "$0")")
 source $CURRENT_DIR/../config/config.sh
+# shellcheck source=lib/pdf_archive_date.sh
+source "$CURRENT_DIR/lib/pdf_archive_date.sh"
 
 {
     cur_files=$(ls  ${MONITOR_DIR}*.pdf)
@@ -12,21 +14,19 @@ source $CURRENT_DIR/../config/config.sh
       if [ -f "$entry.1" ]; then
         :
       else
-          echo "${date} Needs to be processed: $entry"
+          echo "$(date '+%Y-%m-%d %H:%M:%S') Needs to be processed: $entry"
 
           ### Prepare output folder, which is year/month/day ###
 
-          YEAR=$(date -r "$entry" +%Y)
-          MONTH=$(date -r "$entry" +%m)
-          DAY=$(date -r "$entry" +%d)
-          HOUR=$(date -r "$entry" +%H)
-	        MINUTE=$(date -r "$entry" +%M)
-  	      SECOND=$(date -r "$entry" +%S)
-          OUTPUT_DIR="$ARCHIVE_DIR$YEAR/$MONTH/$DAY/";
+          if ! set_archive_date_from_pdf "$entry" mtime; then
+            continue
+          fi
+
+          OUTPUT_DIR="$ARCHIVE_DIR$YEAR/$MONTH/$DAY/"
 
           if [ ! -d "$OUTPUT_DIR" ]; then
             mkdir -p "$OUTPUT_DIR"
-            echo "${date} Created new output directory $OUTPUT_DIR"
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Created new output directory $OUTPUT_DIR"
           fi
 
 
