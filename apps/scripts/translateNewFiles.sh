@@ -6,6 +6,8 @@ source $CURRENT_DIR/../config/config.sh
 source "$CURRENT_DIR/lib/pdf_archive_date.sh"
 # shellcheck source=lib/normalize_pdf_text.sh
 source "$CURRENT_DIR/lib/normalize_pdf_text.sh"
+# shellcheck source=lib/build_elasticsearch_document.sh
+source "$CURRENT_DIR/lib/build_elasticsearch_document.sh"
 
 {
     cur_files=$(ls  ${MONITOR_DIR}*.pdf)
@@ -45,46 +47,30 @@ source "$CURRENT_DIR/lib/normalize_pdf_text.sh"
           ### Produce initial JSON document ###
 
 	        UUID=$(uuid)
-
-          PDFTXT=$(normalize_pdf_text_from_file "$OUTPUT_DIR${entry##*/}.txt")
           NAME=${entry##*/}
-
-          # Assemble the thumbnail subjason
           SEARCH="$OUTPUT_DIR${entry##*/}"
+          JSON_FILE="$OUTPUT_DIR${entry##*/}.json"
+          TIMESTAMP="$YEAR$MONTH${DAY}T$HOUR$MINUTE${SECOND}.000Z"
 
-
-	        THUMBNAILS=""
-	        SIGNALSENDTHUMBS=""
-          for JPGFILE in $SEARCH*.jpg; do
-            THUMBNAILS="$THUMBNAILS{\"imgname\" : \"${JPGFILE##*/}\",\"imgdirectory\" : \"/$OUTPUT_DIR\"},"
-            SIGNALSENDTHUMBS="$SIGNALSENDTHUMBS$OUTPUT_DIR${JPGFILE##*/} "
-          done
-
-          ## strip the last ","
-          THUMBNAILS=${THUMBNAILS::${#THUMBNAILS}-1}
-
-	        TIMESTAMP="$YEAR$MONTH${DAY}T$HOUR$MINUTE${SECOND}.000Z"
-
-          JSON="{
-                      \"id\" : \"$UUID\",
-		      \"name\" : \"$NAME\",
-                      \"directory\" : \"$OUTPUT_DIR\",
-                      \"text\" : \"$PDFTXT\",
-                      \"timestamp\" : \"$TIMESTAMP\",
-                      \"origin\" : \"SCAN\",
-                      \"thumbnails\" : [
-                        $THUMBNAILS
-                      ],
-                      \"tags\" : [
-                        {
-                          \"tagname\" : \"SCANNED\"
-                        }
-                      ]
-                  }"
-          echo "$JSON" > "$OUTPUT_DIR${entry##*/}.json"
+          write_dochauser_document_json \
+            "$JSON_FILE" \
+            "$OUTPUT_DIR${entry##*/}.txt" \
+            "$UUID" \
+            "$NAME" \
+            "$OUTPUT_DIR" \
+            "$TIMESTAMP" \
+            "SCAN" \
+            "SCANNED" \
+            "$SEARCH"
 
       	  ## send the record to elastic search
-          curl -H "Content-Type: application/json" -XPOST "http://localhost:9200/dochauser/_doc/$UUID" -d @$OUTPUT_DIR${entry##*/}.json
+          ES_RESPONSE=$(curl -s -w "\n%{http_code}" -H "Content-Type: application/json" \
+            -XPOST "http://localhost:9200/dochauser/_doc/$UUID" -d @"$JSON_FILE")
+          ES_HTTP_CODE=$(printf '%s' "$ES_RESPONSE" | tail -n1)
+          if [ "$ES_HTTP_CODE" != "201" ] && [ "$ES_HTTP_CODE" != "200" ]; then
+            echo "$(date '+%Y-%m-%d %H:%M:%S') Elasticsearch index failed for $NAME (HTTP $ES_HTTP_CODE): $(printf '%s' "$ES_RESPONSE" | sed '$d')"
+            continue
+          fi
 
           ### Mark as processed
           touch "$entry.1"

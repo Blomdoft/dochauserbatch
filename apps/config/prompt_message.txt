@@ -1,21 +1,10 @@
-You are a helpful assistant.
-The following text is from a letter, please analyze the following text and return a JSON object with fields:
+Analysiere den folgenden Briefext. Antworte ausschließlich mit einem gültigen JSON-Objekt auf Deutsch (kein Markdown). Gib echte Werte zurück, keine Platzhalter und kopiere keine Optionslisten.
 
-senderAddress, 
-receiverAddress, 
-intent, 
-filename,
-category_level1,
-category_level2,
-
-Category_level1 and Category_level2 are a hirarchy, with the following buildup:
-Category_level1 can be Kaiserhaus (for everything related to hotel business at Buehlstrasse 1), 
-it then has one of the Category_level2 Rechnung, Bestellung, Verwaltung, Finanzen, Renovierung.
-Category_level1 can be Buehlstrasse 3 (for everything related to the tenement house at Buehlstrasse 3),
-it then has one of the Category_level2 Rechnung, Mieter, Anfrage, Vertrag, Abrechnung.
-Category_level1 can be CCycle (which is the company of Philip Hauser dealing with carbon, charcoal, and consulting on green environment questions),
-it then has one of the Category_level3 Rechnung, Anfrage, Essay, Spesen, Abrechnung
-If the category level 1 or level 2 cannot be determined, give back "Andere" for level1 and level2.
-As filename, please come up with a short (up to 30 character) logical filename for the pdf, that describes the texts content.
-Intent should be a short one or two scentences synopsis of what the document is about.
-Return everything in German.
+{
+  "senderAddress": "vollständige Absenderadresse",
+  "receiverAddress": "vollständige Empfängeradresse",
+  "intent": "1–2 Sätze: Inhalt und Zweck des Dokuments",
+  "filename": "kurzer logischer PDF-Name, max. 30 Zeichen, ohne Dateiendung",
+  "category_level1": "Kaiserhaus (Hotel Buehlstr. 1) | Buehlstrasse 3 (Mietshaus) | CCycle (Kohle/Umwelt, Philip Hauser) | Andere",
+  "category_level2": "passend zu category_level1 — Kaiserhaus: Rechnung | Bestellung | Verwaltung | Finanzen | Renovierung; Buehlstrasse 3: Rechnung | Mieter | Anfrage | Vertrag | Abrechnung; CCycle: Rechnung | Anfrage | Essay | Spesen | Abrechnung; unklar: Andere für level1 und level2"
+}
