@@ -51,6 +51,8 @@ RUN if [ -f "$imagemagic_config" ]; then \
       echo "did not see file $imagemagic_config"; \
     fi
 
+RUN mkdir -p /home/scanner/apps/lock && chown -R scanner:scanner /home/scanner/apps
+    
 # volumes
 VOLUME /home/scanner/archive
 VOLUME /home/scanner/scanner
