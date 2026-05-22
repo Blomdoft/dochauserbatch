@@ -4,6 +4,8 @@ CURRENT_DIR=$(dirname "$(readlink -f "$0")")
 source $CURRENT_DIR/../config/config.sh
 # shellcheck source=lib/pdf_archive_date.sh
 source "$CURRENT_DIR/lib/pdf_archive_date.sh"
+# shellcheck source=lib/normalize_pdf_text.sh
+source "$CURRENT_DIR/lib/normalize_pdf_text.sh"
 
 {
     cur_files=$(ls  ${MONITOR_DIR}*.pdf)
@@ -44,8 +46,7 @@ source "$CURRENT_DIR/lib/pdf_archive_date.sh"
 
 	        UUID=$(uuid)
 
-          # Strip all double whitespaces and linefeeds from text
-          PDFTXT=$(tr -cs  "[:alnum:]" " " < "$OUTPUT_DIR${entry##*/}.txt")
+          PDFTXT=$(normalize_pdf_text_from_file "$OUTPUT_DIR${entry##*/}.txt")
           NAME=${entry##*/}
 
           # Assemble the thumbnail subjason

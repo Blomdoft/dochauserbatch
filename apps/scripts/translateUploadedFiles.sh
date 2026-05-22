@@ -4,6 +4,8 @@ CURRENT_DIR=$(dirname "$(readlink -f "$0")")
 source $CURRENT_DIR/../config/config.sh
 # shellcheck source=lib/pdf_archive_date.sh
 source "$CURRENT_DIR/lib/pdf_archive_date.sh"
+# shellcheck source=lib/normalize_pdf_text.sh
+source "$CURRENT_DIR/lib/normalize_pdf_text.sh"
 
 {
     cur_files=$(ls  ${IMPORT_DIR}*.pdf)
@@ -33,9 +35,13 @@ source "$CURRENT_DIR/lib/pdf_archive_date.sh"
 
           ### Process the file ###
 
-          # OCR the document
-          ocrmypdf --skip-text -l deu "$entry" "$OUTPUT_DIR${entry##*/}"
-          # extract all text of the pdf to a text file
+          # OCR: --force-ocr replaces PDF text layers that use private-use glyphs ( instead of ü).
+          OCR_ARGS=(--force-ocr -l deu)
+          if [ "${OCR_IMPORT_FORCE:-1}" != "1" ]; then
+            OCR_ARGS=(--skip-text -l deu)
+          fi
+          ocrmypdf "${OCR_ARGS[@]}" "$entry" "$OUTPUT_DIR${entry##*/}"
+          # extract all text of the pdf to a text file (UTF-8)
           pdf2txt -o "$OUTPUT_DIR${entry##*/}.txt" "$OUTPUT_DIR${entry##*/}"
           # save thumbnails of the pages of the pdf
           convert "$entry" -quality 30 "$OUTPUT_DIR${entry##*/}.jpg"
@@ -44,8 +50,7 @@ source "$CURRENT_DIR/lib/pdf_archive_date.sh"
 
 	        UUID=$(uuid)
 
-          # Strip all double whitespaces and linefeeds from text
-          PDFTXT=$(tr -cs  "[:alnum:]" " " < "$OUTPUT_DIR${entry##*/}.txt")
+          PDFTXT=$(normalize_pdf_text_from_file "$OUTPUT_DIR${entry##*/}.txt")
           NAME=${entry##*/}
 
           # Assemble the thumbnail subjason

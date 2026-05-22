@@ -28,5 +28,9 @@ API_MODEL="gpt-4-1106-preview"
 API_TEMPERATURE=0
 API_MAX_INPUT_BYTES=8096
 
+# Imported PDFs: 1 = force OCR (fixes broken umlauts from PDF private-use glyphs)
+# 0 = --skip-text (faster, keeps embedded text; umlauts may show as   etc.)
+OCR_IMPORT_FORCE=1
+
 ## ensure log directory
 mkdir -p "$(dirname "$LOG_FILE")"

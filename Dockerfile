@@ -1,6 +1,8 @@
 FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 RUN groupadd -g 1002 elasticsearch \
     && useradd -rm -d /home/elasticsearch -s /bin/bash -g 1002 -u 1002 elasticsearch \
