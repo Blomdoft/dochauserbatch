@@ -46,6 +46,27 @@ parse_analysis_json() {
   '
 }
 
+# Truncate document text to a byte limit (UTF-8 safe via iconv).
+truncate_input_text() {
+  local text="$1"
+  local max_bytes="${API_MAX_INPUT_BYTES:-0}"
+
+  if [ -z "$max_bytes" ] || [ "$max_bytes" -le 0 ] 2>/dev/null; then
+    printf '%s' "$text"
+    return
+  fi
+
+  local byte_len truncated
+  byte_len=$(printf '%s' "$text" | wc -c | tr -d ' ')
+  if [ "$byte_len" -le "$max_bytes" ]; then
+    printf '%s' "$text"
+    return
+  fi
+
+  truncated=$(printf '%s' "$text" | head -c "$max_bytes")
+  printf '%s' "$truncated" | iconv -f UTF-8 -t UTF-8 -c 2>/dev/null || printf '%s' "$truncated"
+}
+
 { 
   if [ -z "$OPENAI_API_KEY" ]; then
     echo "Info: OPENAI_API_KEY is not set; API requests will be sent without authorization."
@@ -88,6 +109,12 @@ parse_analysis_json() {
   echo "$RESPONSE" | jq -c '.hits.hits[]' | while read -r line; do
     ID=$(echo "$line" | jq -r '._id')
     TEXT=$(echo "$line" | jq -r '._source.text')
+    ORIG_TEXT_BYTES=$(printf '%s' "$TEXT" | wc -c | tr -d ' ')
+    TEXT=$(truncate_input_text "$TEXT")
+    TRUNC_TEXT_BYTES=$(printf '%s' "$TEXT" | wc -c | tr -d ' ')
+    if [ "$TRUNC_TEXT_BYTES" -lt "$ORIG_TEXT_BYTES" ]; then
+      echo "Truncated text for $ID from $ORIG_TEXT_BYTES to $TRUNC_TEXT_BYTES bytes (limit ${API_MAX_INPUT_BYTES})"
+    fi
 
     echo "Analyzing with GPT....  ${ID}"
 
@@ -97,6 +124,7 @@ parse_analysis_json() {
               --arg system_msg "$SYSTEM_ROLE_MESSAGE" \
               --arg model "$API_MODEL" \
               --argjson temperature "${API_TEMPERATURE:-0}" \
+              --argjson num_ctx "${API_NUM_CTX:-0}" \
               '{
                   model: $model,
                   temperature: $temperature,
@@ -105,7 +133,13 @@ parse_analysis_json() {
                   {"role": "user", "content": $text}
                   ],
                   response_format: { "type": "json_object" }
-              }')
+              }
+              | if ($num_ctx | tonumber) > 0 then
+                  . + {
+                    context_length: ($num_ctx | tonumber),
+                    options: { num_ctx: ($num_ctx | tonumber) }
+                  }
+                else . end')
 
       CURL_AUTH=()
       if [ -n "$OPENAI_API_KEY" ]; then
