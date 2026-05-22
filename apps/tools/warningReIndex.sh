@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ES_HOST="192.168.2.8"
+ES_HOST="192.168.2.1000"
 TEMP_INDEX_NAME="dochauser_temp"
 ORIGINAL_INDEX_NAME="dochauser"
 MAPPING_FILE="elasticSearchIndex.json"
