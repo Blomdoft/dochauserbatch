@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ES_HOST="192.168.2.8"
+ES_HOST="192.168.2.1000"
 INDEX_NAME="dochauser"
 
 # Elasticsearch query to update category_level1 if it exists and is not 'Andere'

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Elasticsearch server details
-ES_HOST="192.168.2.8"
+ES_HOST="192.168.2.1000"
 INDEX_NAME="dochauser"
 ES_URL="http://$ES_HOST:9200/$INDEX_NAME/_update_by_query"
 
