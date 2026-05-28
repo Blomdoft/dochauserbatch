@@ -20,7 +20,7 @@ SIGNAL_DIR=$BASE/apps/signal-cli-0.10.3/bin/
 SIGNAL_GROUP=dZRhXx+fbwTl9QBkPGWeBkHh4UFtOio5suJZQyQ1O0Y=
 
 #Elastic search server (in same container, should be localhost on server)
-#ES_HOST="192.168.2.8"
+#ES_HOST="192.168.2.1000"
 ES_HOST="localhost"
 # OpenAI API (Ollama: API_ENDPOINT="http://localhost:11434/v1/chat/completions")
 API_ENDPOINT="https://api.openai.com/v1/chat/completions"

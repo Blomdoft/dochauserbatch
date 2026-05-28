@@ -63,6 +63,11 @@ VOLUME /home/scanner/apps/config
 
 EXPOSE 9200
 
+RUN curl -H "Content-Type: application/json" -XPUT "http://localhost:9200/dochauser" -d "@/home/scanner/apps/elasticSearchIndex.json"
+
+RUN mkdir -p /etc/elasticsearch/jvm.options.d \
+ && printf -- "-Xms512m\n-Xmx512m\n" > /etc/elasticsearch/jvm.options.d/heap.options
+ 
 RUN printf "http.host: 0.0.0.0\nnetwork.host: 0.0.0.0\ndiscovery.type: single-node\n" >> /etc/elasticsearch/elasticsearch.yml
 
 RUN crontab -l 2>/dev/null | { cat; echo "* * * * * timeout 1h flock -n /home/scanner/apps/lock/translateNewFiles.lock su scanner -c /home/scanner/apps/scripts/translateNewFiles.sh"; } | crontab -
