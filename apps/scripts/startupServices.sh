@@ -1,4 +1,5 @@
-#! /usr/bin/env bash
+#!/usr/bin/env bash
+set -e
 
-service elasticsearch start
+su elasticsearch -s /bin/bash -c "/usr/share/elasticsearch/bin/elasticsearch" &
 

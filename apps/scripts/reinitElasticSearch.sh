@@ -3,7 +3,7 @@
 CURRENT_DIR=$(dirname "$(readlink -f "$0")")
 source $CURRENT_DIR/../config/config.sh
 
-{
+
 
     # delete the existing index
     # curl -H "Content-Type: application/json" -XDELETE "http://localhost:9200/dochauser"
@@ -21,4 +21,3 @@ source $CURRENT_DIR/../config/config.sh
 
     done
 
-}  >> $LOG_FILE
